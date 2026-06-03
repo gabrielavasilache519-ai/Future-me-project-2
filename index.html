@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Answer 10 playful questions about your toddler and discover their Future Me, Age 20 profile!">
+  <meta property="og:title" content="Future Me, Age 20">
+  <meta property="og:description" content="What will your tiny tornado be at 20? Take the quiz!">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#FF8A7A">
+  <base href="/Future-me-project-2/">
+  <title>Future Me, Age 20 — What Will Your Toddler Be?</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔮</text></svg>">
+</head>
+<body>
+
+<!-- ─── TOAST ────────────────────────────────── -->
+<div id="toast" class="toast"></div>
+
+<!-- ─── CONFETTI ─────────────────────────────── -->
+<div id="confetti-wrap" class="confetti-wrap"></div>
+
+<!-- ─── SHARE OVERLAY ────────────────────────── -->
+<div id="share-overlay" class="share-overlay">
+  <div class="share-modal">
+    <h3>📸 Share the Future!</h3>
+    <p>Your profile card is perfectly framed for Instagram!</p>
+    <div class="share-btns">
+      <button class="btn btn-secondary btn-small" id="btn-share-save">💾 Save Image</button>
+      <button class="btn btn-primary btn-small" id="btn-share-ig">📷 Instagram</button>
+    </div>
+    <button class="btn btn-ghost" id="btn-share-close" style="margin-top:12px;">Close</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN: HERO
+     ═══════════════════════════════════════════ -->
+<section id="screen-hero" class="screen">
+  <div class="container" style="text-align:center;">
+    <div class="hero-icon-wrap">🔮</div>
+    <div class="hero-badge">🎯 Mom-Approved Fun</div>
+    <h1 class="hero-title">Future Me,<br>Age 20</h1>
+    <p class="hero-sub">Discover what your tiny tornado will be at 20! 10 hilariously accurate questions about your toddler.</p>
+
+    <div class="hero-features">
+      <div class="hero-feature">
+        <span class="icon">🎯</span>
+        <span>10 playful questions about your little one</span>
+      </div>
+      <div class="hero-feature">
+        <span class="icon">🔮</span>
+        <span>Personalized profile: job + hobby + hidden talent</span>
+      </div>
+      <div class="hero-feature">
+        <span class="icon">📸</span>
+        <span>Instagram-screenshot-ready profile card</span>
+      </div>
+      <div class="hero-feature">
+        <span class="icon">📬</span>
+        <span>"Letter from Your Future 20-Year-Old" keepsake</span>
+      </div>
+    </div>
+
+    <div class="hero-price">$4.99</div>
+    <div class="hero-price-note">One-time payment • Instant profile • Shareable</div>
+
+    <button class="btn btn-primary" id="btn-start">Start the Quiz ✨</button>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN: QUIZ
+     ═══════════════════════════════════════════ -->
+<section id="screen-quiz" class="screen">
+  <div class="quiz-header">
+    <div class="progress-row">
+      <span id="progress-text">1 of 10</span>
+      <span id="progress-pct">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+  </div>
+
+  <div class="question-card">
+    <div class="q-number" id="q-number">Question 1</div>
+    <div class="q-text" id="q-text">Loading...</div>
+    <div class="answers" id="q-answers"></div>
+  </div>
+
+  <div class="quiz-nav">
+    <button class="btn btn-secondary btn-small" id="btn-prev" style="display:none;">← Back</button>
+    <button class="btn btn-primary btn-small" id="btn-next" disabled>Next →</button>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN: LOADING
+     ═══════════════════════════════════════════ -->
+<section id="screen-loading" class="screen">
+  <div class="loader-wrap">
+    <div class="spinner"></div>
+    <div class="loader-text">🔮 Consulting the toddler prophecy crystal...</div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN: PAYMENT
+     ═══════════════════════════════════════════ -->
+<section id="screen-payment" class="screen">
+  <div class="payment-card">
+    <div class="payment-icon">✨</div>
+    <h2 class="payment-title">Almost There!</h2>
+    <p class="payment-desc">Enter your child's name and unlock their Future Me, Age 20 Profile.</p>
+
+    <div class="name-group">
+      <label for="child-name-input">Your toddler's name:</label>
+      <input type="text" id="child-name-input" class="name-input" placeholder="e.g. Lily, Max, Baby Dinosaur..." maxlength="30">
+    </div>
+
+    <div class="pricing-box">
+      <div class="pricing-row">
+        <span class="label">Future Me Profile</span>
+        <span class="val">$4.99</span>
+      </div>
+      <div class="pricing-row total">
+        <span class="label">Total</span>
+        <span class="val">$4.99</span>
+      </div>
+    </div>
+
+    <div class="pay-actions">
+      <button class="btn btn-primary" id="btn-pay">🔮 Unlock Profile — $4.99</button>
+      <button class="btn btn-ghost" id="btn-pay-back">← Back to quiz</button>
+    </div>
+
+    <div class="pay-guarantee">🔒 Secure payment • Instant access • Love it or your goldfish crackers back</div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN: PROFILE REVEAL
+     ═══════════════════════════════════════════ -->
+<section id="screen-profile" class="screen">
+  <div class="profile-card">
+    <div class="profile-header" id="prof-header">
+      <div class="profile-arch-badge" id="prof-arch-badge">Strategist</div>
+      <div class="profile-avatar" id="prof-emoji">🧠</div>
+      <h2 class="profile-name" id="prof-name">Your Little One</h2>
+      <div class="profile-age-tag">Future Me, Age 20 🔮</div>
+    </div>
+
+    <div class="profile-body">
+      <div class="profile-row">
+        <div class="profile-row-label">💼 Future Job</div>
+        <div class="profile-row-value job" id="prof-job">—</div>
+      </div>
+      <div class="profile-row">
+        <div class="profile-row-label">🎨 Future Hobby</div>
+        <div class="profile-row-value hobby" id="prof-hobby">—</div>
+      </div>
+      <div class="profile-row">
+        <div class="profile-row-label">🌟 Hidden Talent</div>
+        <div class="profile-row-value talent" id="prof-talent">—</div>
+      </div>
+      <div class="profile-arch-vibe" id="prof-vibe" style="display:none;"></div>
+    </div>
+
+    <div class="profile-footer">futuremeage20.com</div>
+  </div>
+
+  <div class="profile-actions">
+    <button class="btn btn-primary btn-small" id="btn-share">📤 Share This Profile</button>
+    <button class="btn btn-success btn-small" id="btn-letter">📬 Get the Letter — $1.99</button>
+    <button class="btn btn-secondary btn-small" id="btn-compare">👯 Compare with a Friend — $2.99</button>
+    <button class="btn btn-ghost" id="btn-reset">🔄 Start Over</button>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN: COMPARE
+     ═══════════════════════════════════════════ -->
+<section id="screen-compare" class="screen">
+  <div class="container">
+    <h2 class="hero-title" style="font-size:1.6rem; text-align:center; margin-bottom:6px; -webkit-text-fill-color:initial; background:none; color:var(--text);">
+      👯 Side by Side
+    </h2>
+    <p style="text-align:center; color:var(--text-muted); margin-bottom:20px; font-size:0.9rem;">
+      See how your toddler compares with their bestie!
+    </p>
+
+    <div class="compare-grid">
+      <div class="compare-card" id="c1-card">
+        <h4 id="c1-name">Your Toddler</h4>
+        <div class="c-emoji" id="c1-emoji">🧠</div>
+        <div class="c-detail"><strong>Job:</strong> <span id="c1-job">—</span></div>
+        <div class="c-detail"><strong>Hobby:</strong> <span id="c1-hobby">—</span></div>
+        <div class="c-detail"><strong>Talent:</strong> <span id="c1-talent">—</span></div>
+        <div style="font-size:0.72rem; color:var(--text-muted); margin-top:6px;" id="c1-arch">Archetype</div>
+      </div>
+
+      <div class="compare-card" id="c2-card">
+        <h4 id="c2-name">Bestie</h4>
+        <div class="c-emoji" id="c2-emoji">🌟</div>
+        <div class="c-detail"><strong>Job:</strong> <span id="c2-job">—</span></div>
+        <div class="c-detail"><strong>Hobby:</strong> <span id="c2-hobby">—</span></div>
+        <div class="c-detail"><strong>Talent:</strong> <span id="c2-talent">—</span></div>
+        <div style="font-size:0.72rem; color:var(--text-muted); margin-top:6px;" id="c2-arch">Archetype</div>
+      </div>
+    </div>
+
+    <div class="profile-actions">
+      <button class="btn btn-secondary btn-small" id="btn-compare-new">🔄 Generate New Bestie</button>
+      <button class="btn btn-primary btn-small" id="btn-compare-back">← Back to Profile</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN: PDF / LETTER
+     ═══════════════════════════════════════════ -->
+<section id="screen-pdf" class="screen">
+  <div class="letter-card">
+    <h2 class="payment-title" style="margin-bottom:12px;">📬 A Letter from the Future</h2>
+    <p style="color:var(--text-muted); margin-bottom:18px;">
+      A keepsake letter from your toddler's 20-year-old self. Save, print, or frame it!
+    </p>
+
+    <div class="letter-paper" id="letter-content">
+      <p style="text-align:center; color:var(--text-muted); padding:16px 0;">Loading your letter...</p>
+    </div>
+
+    <div class="profile-actions">
+      <button class="btn btn-primary btn-small" id="btn-pdf-print">🖨️ Print / Save as PDF</button>
+      <button class="btn btn-ghost" id="btn-pdf-back">← Back to Profile</button>
+    </div>
+
+    <p style="font-size:0.78rem; color:var(--text-muted); margin-top:14px;">
+      Opens in a new window — choose "Save as PDF" from the print dialog.
+    </p>
+  </div>
+</section>
+
+<!-- ─── SCRIPTS ──────────────────────────────── -->
+<script src="app.js"></script>
+
+<!-- Stripe.js (for future integration) -->
+<script src="https://js.stripe.com/v3/"></script>
+</body>
+</html>

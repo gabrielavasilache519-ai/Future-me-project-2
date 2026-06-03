@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complete Payment — Future Me, Age 20</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .checkout-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-xl);
+      padding: 40px 32px;
+      box-shadow: var(--shadow-lg);
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+    }
+    .checkout-card h1 {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+    }
+    .checkout-card .icon-big {
+      font-size: 3.5rem;
+      margin-bottom: 12px;
+    }
+    .status {
+      margin: 20px 0;
+      padding: 16px;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+    }
+    .status.success {
+      background: #D1FAE5;
+      color: #065F46;
+    }
+    .status.pending {
+      background: #FEF3C7;
+      color: #92400E;
+    }
+    .status.error {
+      background: #FEE2E2;
+      color: #991B1B;
+    }
+    .spinner-sm {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border: 3px solid #E8E8EE;
+      border-top-color: var(--coral);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .footnote {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 16px;
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="checkout-card">
+    <div class="icon-big">🔮</div>
+    <h1>Future Me, Age 20</h1>
+    <p style="color:var(--text-muted); margin-bottom:16px;">Complete your payment to unlock the profile.</p>
+
+    <!-- Pending state -->
+    <div class="status pending" id="status-pending">
+      <span class="spinner-sm"></span> Preparing secure checkout...
+    </div>
+
+    <!-- Success state -->
+    <div class="status success hidden" id="status-success">
+      ✅ Payment successful! Redirecting to your profile...
+    </div>
+
+    <!-- Error state -->
+    <div class="status error hidden" id="status-error">
+      ❌ Payment cancelled or failed.<br>
+      <a href="index.html" style="color:var(--coral-dark); font-weight:700;">← Try again</a>
+    </div>
+
+    <!-- Stripe Checkout button -->
+    <div class="pay-actions" style="margin-top:16px;">
+      <button class="btn btn-primary" id="btn-checkout-pay">
+        💳 Pay $4.99
+      </button>
+    </div>
+
+    <div class="pay-guarantee" style="margin-top:16px;">🔒 Powered by Stripe • Your info is safe</div>
+    <div class="footnote">futuremeage20.com</div>
+  </div>
+
+  <script>
+    (function () {
+      const stripePublishableKey = 'pk_test_XXXXXXXXXXXXXXXXXXXXXXXX';
+
+      const statusPending = document.getElementById('status-pending');
+      const statusSuccess = document.getElementById('status-success');
+      const statusError = document.getElementById('status-error');
+      const payBtn = document.getElementById('btn-checkout-pay');
+
+      // Check URL params for redirect-back from Stripe
+      const params = new URLSearchParams(window.location.search);
+      const sessionId = params.get('session_id');
+
+      if (sessionId) {
+        // Came back from Stripe — show success and redirect home
+        statusPending.classList.add('hidden');
+        statusSuccess.classList.remove('hidden');
+        payBtn.classList.add('hidden');
+
+        // Store payment in sessionStorage for the main app
+        sessionStorage.setItem('futureMeProfile_paid', 'true');
+
+        setTimeout(() => {
+          window.location.href = 'index.html#profile';
+        }, 2000);
+        return;
+      }
+
+      if (params.get('canceled') === 'true') {
+        statusPending.classList.add('hidden');
+        statusError.classList.remove('hidden');
+        payBtn.classList.remove('hidden');
+        payBtn.textContent = '↻ Try Again';
+        return;
+      }
+
+      // Pay button — would redirect to Stripe Checkout
+      payBtn.addEventListener('click', function () {
+        statusPending.classList.remove('hidden');
+        payBtn.disabled = true;
+        payBtn.textContent = 'Redirecting...';
+
+        // In production, uncomment:
+        // const stripe = Stripe(stripePublishableKey);
+        // stripe.redirectToCheckout({
+        //   lineItems: [{ price: 'price_XXXXXXX', quantity: 1 }],
+        //   mode: 'payment',
+        //   successUrl: window.location.origin + '/checkout.html?session_id={CHECKOUT_SESSION_ID}',
+        //   cancelUrl: window.location.origin + '/checkout.html?canceled=true',
+        // });
+
+        // Simulate redirect for demo
+        setTimeout(() => {
+          statusPending.classList.add('hidden');
+          statusSuccess.classList.remove('hidden');
+          payBtn.classList.add('hidden');
+          sessionStorage.setItem('futureMeProfile_paid', 'true');
+          setTimeout(() => {
+            window.location.href = 'index.html#profile';
+          }, 2000);
+        }, 1500);
+      });
+    })();
+  </script>
+  <script src="https://js.stripe.com/v3/"></script>
+</body>
+</html>
