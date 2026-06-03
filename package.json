@@ -1,0 +1,9 @@
+{
+  "name": "future-me-age-20",
+  "version": "1.0.0",
+  "description": "A delightfully weird, shareable quiz for moms of toddlers.",
+  "main": "app.js",
+  "dependencies": {
+    "stripe": "^16.0.0"
+  }
+}

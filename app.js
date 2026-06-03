@@ -157,7 +157,9 @@
     childName: '',
     profile: null,
     comparisonProfile: null,
-    payComplete: false
+    payComplete: false,
+    letterPaid: false,
+    comparePaid: false
   };
 
   // ─── DOM REFS ──────────────────────────
@@ -397,47 +399,54 @@
   };
 
   // ═══════════════════════════════════════════
-  //  PAYMENT (Stripe Checkout simulation)
+  //  PAYMENT (Stripe Checkout)
   // ═══════════════════════════════════════════
 
-  function handlePayment () {
-    const name = el.childNameInput.value.trim();
-    if (!name) {
+  async function startStripeCheckout (product) {
+    const name = el.childNameInput.value.trim() || state.childName;
+    if (product === 'profile' && !name) {
       toast('Please enter your toddler\'s name first!');
       return;
     }
     state.childName = name;
 
-    el.btnPay.disabled = true;
-    el.btnPay.textContent = 'Redirecting to checkout... 🔄';
+    let btn = el.btnPay;
+    if (product === 'letter') btn = el.btnLetter;
+    if (product === 'compare') btn = el.btnCompare;
 
-    // Store name for when they return from Stripe
-    sessionStorage.setItem('futureme_childName', name);
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Redirecting to checkout... 🔄';
 
-    fetch('/.netlify/functions/create-checkout-session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        priceId: 'price_profile_499',
-        childName: name,
-        product: 'profile'
-      })
-    })
-    .then(res => res.json())
-    .then(data => {
+    // Save current state to survive redirect
+    sessionStorage.setItem('futureme_state', JSON.stringify(state));
+
+    try {
+      const response = await fetch('/.netlify/functions/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          product: product,
+          childName: name
+        }),
+      });
+
+      const data = await response.json();
       if (data.url) {
         window.location.href = data.url;
       } else {
-        toast('Payment error: ' + (data.error || 'Something went wrong'));
-        el.btnPay.disabled = false;
-        el.btnPay.textContent = '🔮 Unlock Profile — $4.99';
+        throw new Error(data.error || 'Checkout error');
       }
-    })
-    .catch(err => {
+    } catch (err) {
+      console.error(err);
       toast('Could not connect to payment server. Please try again.');
-      el.btnPay.disabled = false;
-      el.btnPay.textContent = '🔮 Unlock Profile — $4.99';
-    });
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
+  }
+
+  function handlePayment () {
+    startStripeCheckout('profile');
   }
 
   // ═══════════════════════════════════════════
@@ -445,6 +454,10 @@
   // ═══════════════════════════════════════════
 
   function revealProfile () {
+    // Ensure profile is generated if not already
+    if (!state.profile) {
+      state.profile = generateProfile(state.childName);
+    }
     const p = state.profile;
 
     launchConfetti();
@@ -499,7 +512,13 @@
   // ═══════════════════════════════════════════
 
   function showCompare () {
-    state.comparisonProfile = generateComparison();
+    if (!state.comparePaid) {
+      startStripeCheckout('compare');
+      return;
+    }
+    if (!state.comparisonProfile) {
+      state.comparisonProfile = generateComparison();
+    }
     const p = state.profile;
     const cp = state.comparisonProfile;
 
@@ -527,6 +546,10 @@
   // ═══════════════════════════════════════════
 
   function showLetter () {
+    if (!state.letterPaid) {
+      startStripeCheckout('letter');
+      return;
+    }
     const p = state.profile;
     if (!p) return;
 
@@ -559,7 +582,7 @@
     const doc = window.open('', '_blank');
     if (!doc) { toast('Please allow pop-ups to print your letter!'); return; }
 
-    doc.write(\`
+    doc.write(`
       <!DOCTYPE html>
       <html><head>
         <title>Letter from Your Future 20-Year-Old</title>
@@ -579,20 +602,20 @@
         </style>
       </head><body>
         <div class="letter">
-          <div class="hdr"><h1>Future Me, Age 20</h1><div class="badge">\${p.archetype} • \${p.name}</div></div>
+          <div class="hdr"><h1>Future Me, Age 20</h1><div class="badge">${p.archetype} • ${p.name}</div></div>
           <div class="subj">Subject: A Note from the Future (Don't Worry, We Turned Out Great)</div>
           <div class="greet">Dear Mom,</div>
           <p>Hey! It’s me, but from the year 2044. I know right now you’re probably looking at me and wondering how I’m going to survive adulthood when I currently think a handful of dirt is a five-star meal, but I wanted to give you a little update.</p>
-          <p>Life at 20 is pretty awesome. Thanks to all those years of practice <strong>\${p.hobby}</strong>, I’ve actually become quite the expert. People are always impressed by my <strong>\${p.talent}</strong>—I guess those toddler years really were just "early-stage training."</p>
-          <p>Professionally, I’ve found my calling as a <strong>\${p.job}</strong>. It turns out that all those times I <em>\${ref1}</em> were just me honing my craft. Who knew?</p>
-          <p>Anyway, thanks for not losing your mind when I <em>\${ref2}</em>. It all helped me become the weird, wonderful person I am today.</p>
+          <p>Life at 20 is pretty awesome. Thanks to all those years of practice <strong>${p.hobby}</strong>, I’ve actually become quite the expert. People are always impressed by my <strong>${p.talent}</strong>—I guess those toddler years really were just "early-stage training."</p>
+          <p>Professionally, I’ve found my calling as a <strong>${p.job}</strong>. It turns out that all those times I <em>${ref1}</em> were just me honing my craft. Who knew?</p>
+          <p>Anyway, thanks for not losing your mind when I <em>${ref2}</em>. It all helped me become the weird, wonderful person I am today.</p>
           <p>Keep the snacks coming. Some things never change.</p>
           <div class="close">Love,<br>Your Future 20-Year-Old</div>
         </div>
         <div class="foot">futuremeage20.com</div>
         <script>window.print();<\/script>
       </body></html>
-    \`);
+    `);
     doc.close();
     toast('Letter opened! Use Print or Save as PDF 📄');
   }
@@ -632,6 +655,9 @@
     state.profile = null;
     state.comparisonProfile = null;
     state.payComplete = false;
+    state.letterPaid = false;
+    state.comparePaid = false;
+    sessionStorage.removeItem('futureme_state');
     if (el.childNameInput) el.childNameInput.value = '';
     if (el.btnPay) {
       el.btnPay.disabled = false;
@@ -708,18 +734,35 @@
 
     if (sessionId) {
       // User returned from Stripe after payment
-      const childName = params.get('child') || sessionStorage.getItem('futureme_childName') || 'Your Little One';
+      const saved = sessionStorage.getItem('futureme_state');
+      if (saved) {
+        Object.assign(state, JSON.parse(saved));
+      }
+      
+      const product = params.get('product') || 'profile';
+      const childName = params.get('child') || state.childName || 'Your Little One';
       state.childName = childName;
-      state.payComplete = true;
-      state.profile = generateProfile(childName);
-      sessionStorage.removeItem('futureme_childName');
+
+      if (product === 'profile') {
+        state.payComplete = true;
+      } else if (product === 'letter') {
+        state.letterPaid = true;
+      } else if (product === 'compare') {
+        state.comparePaid = true;
+      }
 
       // Clean URL
       window.history.replaceState({}, document.title, window.location.pathname);
 
       show('loading');
       setTimeout(() => {
-        revealProfile();
+        if (product === 'letter') {
+          showLetter();
+        } else if (product === 'compare') {
+          showCompare();
+        } else {
+          revealProfile();
+        }
       }, 1200);
       return true;
     }
@@ -727,6 +770,17 @@
     if (params.get('canceled') === 'true') {
       toast('Payment was cancelled. Try again when you\'re ready!');
       window.history.replaceState({}, document.title, window.location.pathname);
+      // Restore state if possible to avoid losing quiz progress
+      const saved = sessionStorage.getItem('futureme_state');
+      if (saved) {
+        Object.assign(state, JSON.parse(saved));
+        if (!state.payComplete) {
+            show('pay');
+        } else {
+            show('profile');
+        }
+        return true;
+      }
     }
 
     return false;
