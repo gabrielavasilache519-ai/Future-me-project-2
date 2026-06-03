@@ -403,28 +403,41 @@
   function handlePayment () {
     const name = el.childNameInput.value.trim();
     if (!name) {
-      toast('Please enter your toddler’s name first!');
+      toast('Please enter your toddler\'s name first!');
       return;
     }
     state.childName = name;
 
     el.btnPay.disabled = true;
-    el.btnPay.textContent = 'Processing... ⌛';
+    el.btnPay.textContent = 'Redirecting to checkout... 🔄';
 
-    setTimeout(() => {
-      state.payComplete = true;
-      state.profile = generateProfile(state.childName);
+    // Store name for when they return from Stripe
+    sessionStorage.setItem('futureme_childName', name);
 
-      el.btnPay.textContent = 'Payment Successful! ✅';
-      el.btnPay.style.background = 'linear-gradient(135deg, #34D399, #60A5FA)';
-
-      setTimeout(() => {
-        show('loading');
-        setTimeout(() => {
-          revealProfile();
-        }, 1000);
-      }, 600);
-    }, 1800);
+    fetch('/.netlify/functions/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        priceId: 'price_profile_499',
+        childName: name,
+        product: 'profile'
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        toast('Payment error: ' + (data.error || 'Something went wrong'));
+        el.btnPay.disabled = false;
+        el.btnPay.textContent = '🔮 Unlock Profile — $4.99';
+      }
+    })
+    .catch(err => {
+      toast('Could not connect to payment server. Please try again.');
+      el.btnPay.disabled = false;
+      el.btnPay.textContent = '🔮 Unlock Profile — $4.99';
+    });
   }
 
   // ═══════════════════════════════════════════
@@ -687,10 +700,44 @@
   //  INIT
   // ═══════════════════════════════════════════
 
+  // ─── STRIPE RETURN HANDLING ────────────
+
+  function checkStripeReturn () {
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get('session_id');
+
+    if (sessionId) {
+      // User returned from Stripe after payment
+      const childName = params.get('child') || sessionStorage.getItem('futureme_childName') || 'Your Little One';
+      state.childName = childName;
+      state.payComplete = true;
+      state.profile = generateProfile(childName);
+      sessionStorage.removeItem('futureme_childName');
+
+      // Clean URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+
+      show('loading');
+      setTimeout(() => {
+        revealProfile();
+      }, 1200);
+      return true;
+    }
+
+    if (params.get('canceled') === 'true') {
+      toast('Payment was cancelled. Try again when you\'re ready!');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    return false;
+  }
+
   function init () {
     cacheDoms();
     bindEvents();
-    show('hero');
+    if (!checkStripeReturn()) {
+      show('hero');
+    }
   }
 
   if (document.readyState === 'loading') {

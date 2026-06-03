@@ -1,0 +1,8 @@
+{
+  "name": "future-me-functions",
+  "version": "1.0.0",
+  "description": "Stripe Checkout for Future Me, Age 20",
+  "dependencies": {
+    "stripe": "^16.0.0"
+  }
+}
